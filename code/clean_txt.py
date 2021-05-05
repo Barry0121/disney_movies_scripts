@@ -9,6 +9,9 @@ from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 
 def clean_lines(astring):
+    '''
+    Stem words and removing stop words
+    '''
     # https://stackoverflow.com/questions/24517722/how-to-stop-nltk-stemmer-from-removing-the-trailing-e
     # https://www.nltk.org/howto/stem.html
     line = re.sub('[^a-zA-Z]', ' ',astring)
@@ -23,10 +26,12 @@ def clean_lines(astring):
     line = ' '.join(line)
     return line
 
-def clean_txt(fp,scene_delimiter):
+def clean_txt(fp, scene_delimiter):
     chars = []
     words = []
     # scene_setup = []
+    left = scene_delimiter[0]
+    right = scene_delimiter[1]
     scene = False
     new_char = True
     line_nums = []
@@ -49,33 +54,36 @@ def clean_txt(fp,scene_delimiter):
 
                 new_char = False
 
-    # df = pd.DataFrame()
     chars_words = np.array(list(zip(chars, words,line_nums)))    
     # 2) put lines into a df & store it
     draft = pd.DataFrame(chars_words,columns = ['chars','lines','line_num'])
     # 3) add scene setup column & remove it from current line
-    draft['scene_setup'] = draft.lines.apply(get_scene_setup)
-    draft['mod_lines'] = draft.lines.apply(remove_scene_setup)
+    draft['scene_setup'] = draft.lines.apply(get_scene_setup,args=(left,right))
+    draft['mod_lines'] = draft.lines.apply(remove_scene_setup,args=(left,right))
     return draft
 
-def get_scene_setup(string,scene_delimiter):
+def get_scene_setup(string,left,right):
     '''
     get scence setup
     '''
     s = string
-    left = scene_delimiter[0]
-    right = scene_delimiter[1]
-    scene_setup = s[s.find("(")+1:s.find(")")]
+    # left = scene_delimiter[0]
+    # right = scene_delimiter[1]
+    scene_setup = s[s.find(left):s.find(right)+1]
     return scene_setup
 
-def remove_scene_setup(string,scene_delimiter):
+def remove_scene_setup(string,left,right):
     '''
     remove scence setup
     '''
     s = string
-    left = scene_delimiter[0]
-    right = scene_delimiter[1]
-    scene_setup = s[s.find("(")+1:s.find(")")]
-    s = string.replace(scene_setup, ' ')
+    # left = scene_delimiter[0]
+    # right = scene_delimiter[1]
+    s = string.replace('\n',' ')
+    scene_setup = s[s.find(left):s.find(right)+1]
+    if scene_setup == '':
+        pass
+    else:
+        s = string.replace(scene_setup,' ')
     return s
 
