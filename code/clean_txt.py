@@ -49,7 +49,7 @@ def clean_txt(fp, scene_delimiter, start=0, end=None):
     line_nums = []
     with open(fp, 'r', encoding='utf-8') as infile:
         for num_l, line in enumerate(infile):
-            if (num_l < start) or ((num_l > end) and (end != None)):
+            if (end != None) and ((num_l < start) or (num_l > end)):
                 continue
             num_l += 1
             s = line
@@ -103,3 +103,18 @@ def remove_scene_setup(string,left,right):
         s = string.replace(scene_setup,' ')
     return s
 
+def output_csv(name: str, fp: str, scene_delimiter, start=0, end=None):
+    '''
+    output a csv file with necessary information from the scirpt
+    dataframe
+    :param name: str name given to the csv file (w/o the extension name)
+    :param fp: filepath to the raw script file
+    :return: str path to the file
+    '''
+    outpath = os.path.join('cleaned_scripts', f'{name}.csv')
+    df = clean_txt(fp, scene_delimiter, start, end)
+    try:
+        df.to_csv(outpath)
+        return f'output to {outpath}'
+    except:
+        return 'there is an issue'
